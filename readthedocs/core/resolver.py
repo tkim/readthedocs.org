@@ -1,5 +1,7 @@
 """URL resolver for documentation"""
 
+from __future__ import absolute_import
+from builtins import object
 import re
 
 from django.conf import settings
@@ -55,18 +57,19 @@ class ResolverBase(object):
         """Resolve a with nothing smart, just filling in the blanks"""
         # Only support `/docs/project' URLs outside our normal environment. Normally
         # the path should always have a subdomain or CNAME domain
+        # pylint: disable=unused-argument
         if subdomain or cname or (self._use_subdomain()):
-            url = '/'
+            url = u'/'
         else:
-            url = '/docs/{project_slug}/'
+            url = u'/docs/{project_slug}/'
 
         if subproject_slug:
-            url += 'projects/{subproject_slug}/'
+            url += u'projects/{subproject_slug}/'
 
         if single_version:
-            url += '{filename}'
+            url += u'{filename}'
         else:
-            url += '{language}/{version_slug}/{filename}'
+            url += u'{language}/{version_slug}/{filename}'
 
         return url.format(
             project_slug=project_slug, filename=filename,
@@ -102,10 +105,7 @@ class ResolverBase(object):
             project_slug = project.slug
             subproject_slug = None
 
-        if project.single_version or single_version:
-            single_version = True
-        else:
-            single_version = False
+        single_version = bool(project.single_version or single_version)
 
         return self.base_resolve_path(
             project_slug=project_slug,
@@ -120,14 +120,14 @@ class ResolverBase(object):
         )
 
     def resolve_domain(self, project, private=None):
+        # pylint: disable=unused-argument
         canonical_project = self._get_canonical_project(project)
         domain = canonical_project.domains.filter(canonical=True).first()
         if domain:
             return domain.domain
         elif self._use_subdomain():
             return self._get_project_subdomain(canonical_project)
-        else:
-            return getattr(settings, 'PRODUCTION_DOMAIN')
+        return getattr(settings, 'PRODUCTION_DOMAIN')
 
     def resolve(self, project, protocol='http', filename='', private=None,
                 **kwargs):
@@ -156,8 +156,7 @@ class ResolverBase(object):
             return main_language_project
         elif relation:
             return relation.parent
-        else:
-            return project
+        return project
 
     def _get_project_subdomain(self, project):
         """Determine canonical project domain as subdomain"""

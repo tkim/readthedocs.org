@@ -1,6 +1,9 @@
+from __future__ import absolute_import
+from builtins import object
 from django.test import TestCase, override_settings
 
-from readthedocs.core.utils.extend import SettingsOverrideObject
+from readthedocs.core.utils.extend import (SettingsOverrideObject,
+                                           get_override_class)
 
 
 # Top level to ensure module name is correct
@@ -8,9 +11,17 @@ class FooBase(object):
     def bar(self):
         return 1
 
+    @classmethod
+    def baz(cls):
+        return 1
+
 
 class NewFoo(FooBase):
     def bar(self):
+        return 2
+
+    @classmethod
+    def baz(cls):
         return 2
 
 
@@ -29,9 +40,12 @@ class ExtendTests(TestCase):
             _override_setting = 'FOO_OVERRIDE_CLASS'
 
         foo = Foo()
-        self.assertEqual(foo._get_class_id(), EXTEND_PATH)
         self.assertEqual(foo.__class__.__name__, 'FooBase')
         self.assertEqual(foo.bar(), 1)
+        self.assertEqual(Foo.baz(), 1)
+
+        override_class = get_override_class(Foo, Foo._default_class)
+        self.assertEqual(override_class, FooBase)
 
     @override_settings(FOO_OVERRIDE_CLASS=EXTEND_OVERRIDE_PATH)
     def test_with_basic_override(self):
@@ -41,9 +55,12 @@ class ExtendTests(TestCase):
             _override_setting = 'FOO_OVERRIDE_CLASS'
 
         foo = Foo()
-        self.assertEqual(foo._get_class_id(), EXTEND_PATH)
         self.assertEqual(foo.__class__.__name__, 'NewFoo')
         self.assertEqual(foo.bar(), 2)
+        self.assertEqual(Foo.baz(), 2)
+
+        override_class = get_override_class(Foo, Foo._default_class)
+        self.assertEqual(override_class, NewFoo)
 
     @override_settings(FOO_OVERRIDE_CLASS=None,
                        CLASS_OVERRIDES={
@@ -56,9 +73,12 @@ class ExtendTests(TestCase):
             _override_setting = 'FOO_OVERRIDE_CLASS'
 
         foo = Foo()
-        self.assertEqual(foo._get_class_id(), EXTEND_PATH)
         self.assertEqual(foo.__class__.__name__, 'NewFoo')
         self.assertEqual(foo.bar(), 2)
+        self.assertEqual(Foo.baz(), 2)
+
+        override_class = get_override_class(Foo, Foo._default_class)
+        self.assertEqual(override_class, NewFoo)
 
     @override_settings(FOO_OVERRIDE_CLASS=None,
                        CLASS_OVERRIDES={
@@ -70,6 +90,9 @@ class ExtendTests(TestCase):
             _default_class = FooBase
 
         foo = Foo()
-        self.assertEqual(foo._get_class_id(), EXTEND_PATH)
         self.assertEqual(foo.__class__.__name__, 'NewFoo')
         self.assertEqual(foo.bar(), 2)
+        self.assertEqual(Foo.baz(), 2)
+
+        override_class = get_override_class(Foo, Foo._default_class)
+        self.assertEqual(override_class, NewFoo)

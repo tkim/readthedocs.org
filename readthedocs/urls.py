@@ -1,5 +1,7 @@
 # pylint: disable=missing-docstring
+from __future__ import absolute_import
 
+from functools import reduce
 from operator import add
 
 from django.conf.urls import url, include
@@ -7,7 +9,6 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import TemplateView
-
 from tastypie.api import Api
 
 from readthedocs.api.base import (ProjectResource, UserResource,
@@ -25,8 +26,8 @@ v1_api.register(FileResource())
 
 admin.autodiscover()
 
-handler500 = 'readthedocs.core.views.server_error'
 handler404 = 'readthedocs.core.views.server_error_404'
+handler500 = 'readthedocs.core.views.server_error_500'
 
 basic_urls = [
     url(r'^$', HomepageView.as_view(), name='homepage'),
@@ -44,6 +45,10 @@ rtd_urls = [
     url(r'^notifications/', include('readthedocs.notifications.urls')),
     # For redirects
     url(r'^builds/', include('readthedocs.builds.urls')),
+    # For testing the 404's with DEBUG on.
+    url(r'^404/$', handler404),
+    # For testing the 500's with DEBUG on.
+    url(r'^500/$', handler500),
 ]
 
 project_urls = [
@@ -65,11 +70,6 @@ admin_urls = [
     url(r'^admin/', include(admin.site.urls)),
 ]
 
-money_urls = [
-    url(r'^sustainability/', include('readthedocs.donate.urls')),
-    url(r'^accounts/gold/', include('readthedocs.gold.urls')),
-]
-
 debug_urls = add(
     [
         url('style-catalog/$',
@@ -80,8 +80,14 @@ debug_urls = add(
 
 # Export URLs
 groups = [basic_urls, rtd_urls, project_urls, api_urls, core_urls, i18n_urls,
-          money_urls, deprecated_urls]
+          deprecated_urls]
 
+if 'readthedocs.donate' in settings.INSTALLED_APPS:
+    # Include donation URL's
+    groups.append([
+        url(r'^sustainability/', include('readthedocs.donate.urls')),
+        url(r'^accounts/gold/', include('readthedocs.gold.urls')),
+    ])
 if not getattr(settings, 'USE_SUBDOMAIN', False) or settings.DEBUG:
     groups.insert(0, docs_urls)
 if getattr(settings, 'ALLOW_ADMIN', True):

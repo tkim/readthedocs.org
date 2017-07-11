@@ -96,8 +96,6 @@ Deleting a stale or broken build environment
 
 If you're having trouble getting your version to build, try wiping out the existing build/environment files.  On your version list page ``/projects/[project]/versions`` there is a "Wipe" button that will remove all of the files associated with your documentation build, but not the documentation itself.
 
-
-
 How do I host multiple projects on one CNAME?
 ---------------------------------------------
 
@@ -141,19 +139,15 @@ Image scaling in docutils depends on PIL. PIL is installed in the system that RT
 I want comments in my docs
 --------------------------
 
-RTD doesn't have explicit support for this. That said, a tool like `Disqus`_ can be used for this purpose on RTD.
+RTD doesn't have explicit support for this. That said, a tool like `Disqus`_ (and the `sphinxcontrib-disqus`_ plugin) can be used for this purpose on RTD.
 
 .. _Disqus: http://disqus.com/
+.. _sphinxcontrib-disqus: https://pypi.python.org/pypi/sphinxcontrib-disqus
 
 How do I support multiple languages of documentation?
 -----------------------------------------------------
 
 See the section on :ref:`Localization of Documentation`.
-
-Do I need to be whitelisted?
-----------------------------
-
-No. Whitelisting has been removed as a concept in Read the Docs. You should have access to all of the features already.
 
 Does Read The Docs work well with "legible" docstrings?
 -------------------------------------------------------
@@ -164,7 +158,7 @@ have adopted customized docstring styles that are simultaneously
 informative and legible. The
 `NumPy <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_
 and
-`Google <http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Comments#Comments>`_
+`Google <https://google.github.io/styleguide/pyguide.html?showone=Comments#Comments>`_
 styles are two popular docstring formats.  Fortunately, the default
 Read The Docs theme handles both formats just fine, provided
 your ``conf.py`` specifies an appropriate Sphinx extension that
@@ -206,3 +200,8 @@ file* field.
 
 .. _Sphinx's autoapi: http://sphinx-doc.org/ext/autodoc.html
 .. _pip requirements file: https://pip.pypa.io/en/stable/user_guide.html#requirements-files
+
+What commit of Read the Docs is in production?
+----------------------------------------------
+
+We deploy readthedocs.org from the `rel` branch in our GitHub repository. You can see the latest commits that have been deployed by looking on GitHub: https://github.com/rtfd/readthedocs.org/commits/rel

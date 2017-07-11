@@ -1,3 +1,6 @@
+"""Mix-in classes for project views."""
+from __future__ import absolute_import
+from builtins import object
 import logging
 from datetime import datetime, timedelta
 
@@ -78,9 +81,6 @@ class ProjectAdminMixin(object):
         """Pass in project to form class instance"""
         kwargs['project'] = self.get_project()
         return self.form_class(data, files, **kwargs)
-
-    def get_success_url(self, **kwargs):
-        return reverse('projects_domains', args=[self.get_project().slug])
 
 
 class ProjectSpamMixin(object):

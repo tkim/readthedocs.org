@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import logging
 import json
 import mock
@@ -81,7 +82,7 @@ class PrivacyTests(TestCase):
 
         self.client.login(username='tester', password='test')
         r = self.client.get('/')
-        self.assertTrue('Django Kong' not in r.content)
+        self.assertNotContains(r, 'Django Kong')
         r = self.client.get('/projects/django-kong/')
         self.assertEqual(r.status_code, 404)
         r = self.client.get('/projects/django-kong/builds/')
@@ -121,16 +122,16 @@ class PrivacyTests(TestCase):
         self.assertEqual(Version.objects.count(), 2)
         self.assertEqual(Version.objects.get(slug='test-slug').privacy_level, 'private')
         r = self.client.get('/projects/django-kong/')
-        self.assertTrue('test-slug' in r.content)
+        self.assertContains(r, 'test-slug')
         r = self.client.get('/projects/django-kong/builds/')
-        self.assertTrue('test-slug' in r.content)
+        self.assertContains(r, 'test-slug')
 
         # Make sure it doesn't show up as tester
         self.client.login(username='tester', password='test')
         r = self.client.get('/projects/django-kong/')
-        self.assertTrue('test-slug' not in r.content)
+        self.assertNotContains(r, 'test-slug')
         r = self.client.get('/projects/django-kong/builds/')
-        self.assertTrue('test-slug' not in r.content)
+        self.assertNotContains(r, 'test-slug')
 
     def test_public_branch(self):
         kong = self._create_kong('public', 'public')
@@ -141,12 +142,12 @@ class PrivacyTests(TestCase):
         self.assertEqual(Version.objects.count(), 2)
         self.assertEqual(Version.objects.all()[0].privacy_level, 'public')
         r = self.client.get('/projects/django-kong/')
-        self.assertTrue('test-slug' in r.content)
+        self.assertContains(r, 'test-slug')
 
         # Make sure it doesn't show up as tester
         self.client.login(username='tester', password='test')
         r = self.client.get('/projects/django-kong/')
-        self.assertTrue('test-slug' in r.content)
+        self.assertContains(r, 'test-slug')
 
     def test_public_repo_api(self):
         self._create_kong('public', 'public')
@@ -154,6 +155,7 @@ class PrivacyTests(TestCase):
         resp = self.client.get("http://testserver/api/v1/project/django-kong/",
                                data={"format": "json"})
         self.assertEqual(resp.status_code, 200)
+
         resp = self.client.get("http://testserver/api/v1/project/",
                                data={"format": "json"})
         self.assertEqual(resp.status_code, 200)
@@ -282,7 +284,7 @@ class PrivacyTests(TestCase):
         self.assertEqual(r.status_code, 200)
         r = self.client.get('/projects/django-kong/downloads/pdf/latest/')
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r._headers['location'][1], 'http://testserver/media/pdf/django-kong/latest/django-kong.pdf')
+        self.assertEqual(r._headers['location'][1], '/media/pdf/django-kong/latest/django-kong.pdf')
 
         # Auth'd user
         self.client.login(username='eric', password='test')
@@ -290,7 +292,7 @@ class PrivacyTests(TestCase):
         self.assertEqual(r.status_code, 200)
         r = self.client.get('/projects/django-kong/downloads/pdf/latest/')
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r._headers['location'][1], 'http://testserver/media/pdf/django-kong/latest/django-kong.pdf')
+        self.assertEqual(r._headers['location'][1], '/media/pdf/django-kong/latest/django-kong.pdf')
 
     @override_settings(DEFAULT_PRIVACY_LEVEL='public')
     def test_public_private_repo_downloading(self):
@@ -309,7 +311,7 @@ class PrivacyTests(TestCase):
         self.assertEqual(r.status_code, 200)
         r = self.client.get('/projects/django-kong/downloads/pdf/latest/')
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r._headers['location'][1], 'http://testserver/media/pdf/django-kong/latest/django-kong.pdf')
+        self.assertEqual(r._headers['location'][1], '/media/pdf/django-kong/latest/django-kong.pdf')
 
     @override_settings(DEFAULT_PRIVACY_LEVEL='public')
     def test_public_download_filename(self):
@@ -318,15 +320,15 @@ class PrivacyTests(TestCase):
         self.client.login(username='eric', password='test')
         r = self.client.get('/projects/django-kong/downloads/pdf/latest/')
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r._headers['location'][1], 'http://testserver/media/pdf/django-kong/latest/django-kong.pdf')
+        self.assertEqual(r._headers['location'][1], '/media/pdf/django-kong/latest/django-kong.pdf')
 
         r = self.client.get('/projects/django-kong/downloads/epub/latest/')
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r._headers['location'][1], 'http://testserver/media/epub/django-kong/latest/django-kong.epub')
+        self.assertEqual(r._headers['location'][1], '/media/epub/django-kong/latest/django-kong.epub')
 
         r = self.client.get('/projects/django-kong/downloads/htmlzip/latest/')
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r._headers['location'][1], 'http://testserver/media/htmlzip/django-kong/latest/django-kong.zip')
+        self.assertEqual(r._headers['location'][1], '/media/htmlzip/django-kong/latest/django-kong.zip')
 
 # Build Filtering
 
@@ -338,15 +340,16 @@ class PrivacyTests(TestCase):
                                      verbose_name='test verbose', privacy_level='private', slug='test-slug', active=True)
 
         r = self.client.get('/projects/django-kong/builds/')
-        self.assertTrue(r.content.count('test-slug', 1))
+        self.assertContains(r, 'test-slug')
+
         Build.objects.create(project=kong, version=ver)
         r = self.client.get('/projects/django-kong/builds/')
-        self.assertTrue(r.content.count('test-slug', 2))
+        self.assertContains(r, 'test-slug')
 
         # Make sure it doesn't show up as tester
         self.client.login(username='tester', password='test')
         r = self.client.get('/projects/django-kong/builds/')
-        self.assertTrue('test-slug' not in r.content)
+        self.assertNotContains(r, 'test-slug')
 
     def test_queryset_chaining(self):
         """

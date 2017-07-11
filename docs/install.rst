@@ -6,6 +6,13 @@ Installation
 Here is a step by step plan on how to install Read the Docs.
 It will get you to a point of having a local running instance.
 
+.. warning::
+
+    Read the Docs does not itself run under Python 3 (though it does support
+    building documentation for Python 3 projects). Please ensure the subsequent
+    steps are performed using Python 2.7.
+
+
 First, obtain `Python 2.7`_ and virtualenv_ if you do not already have them. Using a
 virtual environment will make the installation easier, and will help to avoid
 clutter in your system-wide libraries. You will also need Git_ in order to
@@ -16,6 +23,10 @@ need to install Python 3 with virtualenv in your system as well.
 .. _Python 2.7: http://www.python.org/
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
 .. _Git: http://git-scm.com/
+.. _Homebrew: http://brew.sh/
+.. _Elasticsearch: https://www.elastic.co/products/elasticsearch
+.. _PostgreSQL: https://www.postgresql.org/
+.. _Redis: https://redis.io/
 
 
 .. note::
@@ -42,7 +53,23 @@ need to install Python 3 with virtualenv in your system as well.
     Users of other Linux distributions may need to install the equivalent
     packages, depending on their system configuration.
 
-.. _Homebrew: http://brew.sh/
+.. note::
+
+   If you want full support for searching inside your Read the Docs
+   site you will need to install Elasticsearch_.
+
+   Ubuntu users could install this package as following::
+
+        sudo apt-get install elasticsearch
+
+.. note::
+
+   Besides the Python specific dependencies, you will also need Redis_.
+
+   Ubuntu users could install this package as following::
+
+        sudo apt-get install redis-server
+
 
 You will need to verify that your pip version is higher than 1.5 you can do this as such::
 
@@ -78,7 +105,7 @@ database::
 Then please create a superuser account for Django::
 
     python manage.py createsuperuser
-    
+
 Now let's properly generate the static assets::
 
     python manage.py collectstatic
@@ -101,7 +128,7 @@ Visit http://127.0.0.1:8000/ in your browser to see how it looks; you can use
 the admin interface via http://127.0.0.1:8000/admin (logging in with the
 superuser account you just created).
 
-For builds to properly kick off as expected, it is necessary the port 
+For builds to properly kick off as expected, it is necessary the port
 you're serving on (i.e. ``runserver 0.0.0.0:8080``) match the port defined
 in ``PRODUCTION_DOMAIN``. You can utilize ``local_settings.py`` to modify this.
 (By default, it's ``localhost:8000``)
@@ -116,7 +143,7 @@ What's available
 ----------------
 
 After registering with the site (or creating yourself a superuser account),
-you will be able to log in and view the `dashboard <http://readthedocs.org/dashboard/>`_.
+you will be able to log in and view the `dashboard <http://localhost:8000/dashboard/>`_.
 
 From the dashboard you can import your existing
 docs provided that they are in a git or mercurial repo.
@@ -137,7 +164,7 @@ Importing existing docs
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 The other side of `readthedocs.org <http://readthedocs.org>`_ is hosting the
-docs you've already built.  Simply provide us with the clone url to your repo,
+docs you've already built.  Simply provide us with the clone URL to your repo,
 we'll pull your code, extract your docs, and build them!  We make available
 a post-commit webhook that can be configured to update the docs on our site
 whenever you commit to your repo, effectively letting you 'set it and forget it'.

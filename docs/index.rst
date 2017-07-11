@@ -7,7 +7,7 @@ We pull your code from your Subversion_, Bazaar_, Git_, and Mercurial_ repositor
 Then we build documentation and host it for you.
 Think of it as *Continuous Documentation*.
 
-The code is open source, and `available on github`_.
+The code is open source, and `available on GitHub`_.
 
 .. _Read the docs: http://readthedocs.org/
 .. _Sphinx: http://sphinx.pocoo.org/
@@ -17,8 +17,8 @@ The code is open source, and `available on github`_.
 .. _Subversion: http://subversion.tigris.org/
 .. _Bazaar: http://bazaar.canonical.com/
 .. _Git: http://git-scm.com/
-.. _Mercurial: http://mercurial.selenic.com/
-.. _available on github: http://github.com/rtfd/readthedocs.org
+.. _Mercurial: https://www.mercurial-scm.org/
+.. _available on GitHub: http://github.com/rtfd/readthedocs.org
 
 The main documentation for the site is organized into a couple sections:
 
@@ -30,7 +30,6 @@ Information about development is also available:
 
 * :ref:`dev-docs`
 * :ref:`design-docs`
-* :ref:`ops-docs`
 
 .. _user-docs:
 
@@ -46,6 +45,8 @@ Information about development is also available:
    faq
    yaml-config
    guides/index
+   api
+   embed
 
 .. _about-docs:
 
@@ -55,9 +56,13 @@ Information about development is also available:
 
    contribute
    team
+   code-of-conduct
    ethical-advertising
    sponsors
    open-source-philosophy
+   story
+   talks
+   dmca/index
 
 .. _feature-docs:
 
@@ -71,6 +76,7 @@ Information about development is also available:
    alternate_domains
    localization
    vcs
+   subprojects
    conda
    canonical
    single_version
@@ -87,6 +93,7 @@ Information about development is also available:
    :caption: Developer Documentation
 
    install
+   api/index
    changelog
    tests
    docs

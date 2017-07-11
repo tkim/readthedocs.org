@@ -1,3 +1,6 @@
+"""Django admin configuration for the donate app."""
+
+from __future__ import absolute_import
 from django.contrib import admin
 from .models import (Supporter, SupporterPromo, Country,
                      PromoImpressions, GeoFilter)
@@ -8,10 +11,11 @@ DEFAULT_EXCLUDES = ['BD', 'CN', 'TF', 'GT', 'IN', 'ID',
 
 
 def set_default_countries(modeladmin, request, queryset):
+    del modeladmin, request  # unused arguments
     for project in queryset:
-        filter = project.geo_filters.create(filter_type='exclude')
+        geo_filter = project.geo_filters.create(filter_type='exclude')
         for country in Country.objects.filter(country__in=DEFAULT_EXCLUDES):
-            filter.countries.add(country)
+            geo_filter.countries.add(country)
 set_default_countries.short_description = "Add default exclude countries to this Promo"
 
 
@@ -40,34 +44,20 @@ class ImpressionInline(admin.TabularInline):
     can_delete = False
     max_num = 15
 
-    def view_ratio(self, instance):
-        return instance.view_ratio * 100
-
-    def click_ratio(self, instance):
-        return instance.click_ratio * 100
-
 
 class SupporterPromoAdmin(admin.ModelAdmin):
     model = SupporterPromo
     save_as = True
-    list_display = ('name', 'live', 'click_ratio', 'sold_impressions',
+    prepopulated_fields = {'analytics_id': ('name',)}
+    list_display = ('name', 'live', 'total_click_ratio', 'click_ratio', 'sold_impressions',
                     'total_views', 'total_clicks')
     list_filter = ('live', 'display_type')
+    list_editable = ('live', 'sold_impressions')
     readonly_fields = ('total_views', 'total_clicks')
+    search_fields = ('name', 'text', 'analytics_id')
     inlines = [ImpressionInline, GeoFilterInline]
     actions = [set_default_countries]
 
-    def view_ratio(self, instance):
-        return instance.view_ratio() * 100
-
-    def click_ratio(self, instance):
-        return instance.click_ratio() * 100
-
-    def total_views(self, instance):
-        return sum(imp.views for imp in instance.impressions.all())
-
-    def total_clicks(self, instance):
-        return sum(imp.clicks for imp in instance.impressions.all())
 
 admin.site.register(Supporter, SupporterAdmin)
 admin.site.register(SupporterPromo, SupporterPromoAdmin)

@@ -1,3 +1,6 @@
+"""Endpoints related to searching through projects, sections, etc."""
+
+from __future__ import absolute_import
 import logging
 
 from rest_framework import decorators, permissions, status
@@ -19,7 +22,7 @@ log = logging.getLogger(__name__)
 @decorators.renderer_classes((JSONRenderer,))
 def index_search(request):
     """Add things to the search index"""
-    data = request.DATA['data']
+    data = request.data['data']
     version_pk = data['version_pk']
     commit = data.get('commit')
     version = Version.objects.get(pk=version_pk)
