@@ -23,8 +23,7 @@ jsonfield==1.0.3
 requests==2.3.0
 slumber==0.7.1
 lxml==3.3.5
-
-django-countries==3.4.1
+defusedxml==0.5.0
 
 # Basic tools
 redis==2.10.3
