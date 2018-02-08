@@ -84,11 +84,18 @@ debug_urls = add(
 groups = [basic_urls, rtd_urls, project_urls, api_urls, core_urls, i18n_urls,
           deprecated_urls]
 
-if 'readthedocsext.donate' in settings.INSTALLED_APPS:
+if settings.USE_PROMOS:
     # Include donation URL's
     groups.append([
         url(r'^sustainability/', include('readthedocsext.donate.urls')),
     ])
+
+if 'readthedocsext.embed' in settings.INSTALLED_APPS:
+    api_urls.insert(
+        0,
+        url(r'^api/v1/embed/', include('readthedocsext.embed.urls'))
+    )
+
 if not getattr(settings, 'USE_SUBDOMAIN', False) or settings.DEBUG:
     groups.insert(0, docs_urls)
 if getattr(settings, 'ALLOW_ADMIN', True):

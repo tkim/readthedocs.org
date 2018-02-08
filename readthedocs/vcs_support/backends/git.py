@@ -10,7 +10,7 @@ import re
 from builtins import str
 from six import StringIO
 
-from readthedocs.projects.exceptions import ProjectImportError
+from readthedocs.projects.exceptions import RepositoryError
 from readthedocs.vcs_support.base import BaseVCS, VCSVersion
 
 
@@ -56,12 +56,9 @@ class Backend(BaseVCS):
         return code == 0
 
     def fetch(self):
-        code, _, err = self.run('git', 'fetch', '--tags', '--prune')
+        code, _, _ = self.run('git', 'fetch', '--tags', '--prune')
         if code != 0:
-            raise ProjectImportError(
-                "Failed to get code from '%s' (git fetch): %s\n\nStderr:\n\n%s\n\n" % (
-                    self.repo_url, code, err)
-            )
+            raise RepositoryError
 
     def checkout_revision(self, revision=None):
         if not revision:
@@ -76,19 +73,10 @@ class Backend(BaseVCS):
         return [code, out, err]
 
     def clone(self):
-        code, _, err = self.run('git', 'clone', '--recursive', '--quiet',
-                                self.repo_url, '.')
+        code, _, _ = self.run('git', 'clone', '--recursive', '--quiet',
+                              self.repo_url, '.')
         if code != 0:
-            raise ProjectImportError(
-                (
-                    "Failed to get code from '{url}' (git clone): {exit}\n\n"
-                    "git clone error output: {sterr}"
-                ).format(
-                    url=self.repo_url,
-                    exit=code,
-                    sterr=err
-                )
-            )
+            raise RepositoryError
 
     @property
     def tags(self):
@@ -123,7 +111,7 @@ class Backend(BaseVCS):
             if row == []:
                 continue
             commit_hash, name = row
-            clean_name = name.split('/')[-1]
+            clean_name = name.replace('refs/tags/', '')
             vcs_tags.append(VCSVersion(self, commit_hash, clean_name))
         return vcs_tags
 
@@ -160,15 +148,12 @@ class Backend(BaseVCS):
             if branch:
                 branch = branch[0]
                 if branch.startswith('origin/'):
-                    cut_len = len('origin/')
-                    slug = branch[cut_len:].replace('/', '-')
-                    if slug in ['HEAD']:
+                    verbose_name = branch.replace('origin/', '')
+                    if verbose_name in ['HEAD']:
                         continue
-                    clean_branches.append(VCSVersion(self, branch, slug))
+                    clean_branches.append(VCSVersion(self, branch, verbose_name))
                 else:
-                    # Believe this is dead code.
-                    slug = branch.replace('/', '-')
-                    clean_branches.append(VCSVersion(self, branch, slug))
+                    clean_branches.append(VCSVersion(self, branch, branch))
         return clean_branches
 
     @property
@@ -227,4 +212,6 @@ class Backend(BaseVCS):
     def env(self):
         env = super(Backend, self).env
         env['GIT_DIR'] = os.path.join(self.working_dir, '.git')
+        # Don't prompt for username, this requires Git 2.3+
+        env['GIT_TERMINAL_PROMPT'] = '0'
         return env

@@ -74,10 +74,10 @@ def build_branches(project, branch_list):
         to_build - a list of branches that were built
         not_building - a list of branches that we won't build
     """
+    to_build = set()
+    not_building = set()
     for branch in branch_list:
         versions = project.versions_from_branch_name(branch)
-        to_build = set()
-        not_building = set()
         for version in versions:
             log.info("(Branch Build) Processing %s:%s",
                      project.slug, version.slug)
@@ -107,7 +107,8 @@ def _build_url(url, projects, branches):
     """
     Map a URL onto specific projects to build that are linked to that URL.
 
-    Check each of the ``branches`` to see if they are active and should be built.
+    Check each of the ``branches`` to see if they are active and should be
+    built.
     """
     ret = ""
     all_built = {}
@@ -152,7 +153,7 @@ def _build_url(url, projects, branches):
 @csrf_exempt
 def github_build(request):  # noqa: D205
     """
-    GitHub webhook consumer
+    GitHub webhook consumer.
 
     .. warning:: **DEPRECATED**
         Use :py:cls:`readthedocs.restapi.views.integrations.GitHubWebhookView`
@@ -178,7 +179,7 @@ def github_build(request):  # noqa: D205
             ssh_search_url = ssh_url.replace('git@', '').replace('.git', '')
             branches = [data['ref'].replace('refs/heads/', '')]
         except (ValueError, TypeError, KeyError):
-            log.error('Invalid GitHub webhook payload', exc_info=True)
+            log.exception('Invalid GitHub webhook payload')
             return HttpResponse('Invalid request', status=400)
         try:
             repo_projects = get_project_from_url(http_search_url)
@@ -198,7 +199,7 @@ def github_build(request):  # noqa: D205
             projects = repo_projects | ssh_projects
             return _build_url(http_search_url, projects, branches)
         except NoProjectException:
-            log.error('Project match not found: url=%s', http_search_url)
+            log.exception('Project match not found: url=%s', http_search_url)
             return HttpResponseNotFound('Project not found')
     else:
         return HttpResponse('Method not allowed, POST is required', status=405)
@@ -206,7 +207,8 @@ def github_build(request):  # noqa: D205
 
 @csrf_exempt
 def gitlab_build(request):  # noqa: D205
-    """GitLab webhook consumer
+    """
+    GitLab webhook consumer.
 
     .. warning:: **DEPRECATED**
         Use :py:cls:`readthedocs.restapi.views.integrations.GitLabWebhookView`
@@ -222,7 +224,7 @@ def gitlab_build(request):  # noqa: D205
             search_url = re.sub(r'^https?://(.*?)(?:\.git|)$', '\\1', url)
             branches = [data['ref'].replace('refs/heads/', '')]
         except (ValueError, TypeError, KeyError):
-            log.error('Invalid GitLab webhook payload', exc_info=True)
+            log.exception('Invalid GitLab webhook payload')
             return HttpResponse('Invalid request', status=400)
         log.info(
             'GitLab webhook search: url=%s branches=%s',
@@ -239,7 +241,8 @@ def gitlab_build(request):  # noqa: D205
 
 @csrf_exempt
 def bitbucket_build(request):
-    """Consume webhooks from multiple versions of Bitbucket's API
+    """
+    Consume webhooks from multiple versions of Bitbucket's API.
 
     .. warning:: **DEPRECATED**
         Use :py:cls:`readthedocs.restapi.views.integrations.BitbucketWebhookView`
@@ -281,7 +284,7 @@ def bitbucket_build(request):
                     data['repository']['full_name']
                 )
         except (TypeError, ValueError, KeyError):
-            log.error('Invalid Bitbucket webhook payload', exc_info=True)
+            log.exception('Invalid Bitbucket webhook payload')
             return HttpResponse('Invalid request', status=400)
 
         log.info(
@@ -307,11 +310,13 @@ def bitbucket_build(request):
 
 @csrf_exempt
 def generic_build(request, project_id_or_slug=None):
-    """Generic webhook build endpoint
+    """
+    Generic webhook build endpoint.
 
     .. warning:: **DEPRECATED**
-        Use :py:cls:`readthedocs.restapi.views.integrations.GenericWebhookView`
-        instead of this view function
+
+      Use :py:cls:`readthedocs.restapi.views.integrations.GenericWebhookView`
+      instead of this view function
     """
     try:
         project = Project.objects.get(pk=project_id_or_slug)
@@ -320,7 +325,7 @@ def generic_build(request, project_id_or_slug=None):
         try:
             project = Project.objects.get(slug=project_id_or_slug)
         except (Project.DoesNotExist, ValueError):
-            log.error(
+            log.exception(
                 "(Incoming Generic Build) Repo not found:  %s",
                 project_id_or_slug)
             return HttpResponseNotFound(

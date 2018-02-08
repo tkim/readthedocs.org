@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 def process_mkdocs_json(version, build_dir=True):
-    """Given a version object, return a list of page dicts from disk content"""
+    """Given a version object, return a list of page dicts from disk content."""
     if build_dir:
         full_path = version.project.full_json_path(version.slug)
     else:
@@ -185,13 +185,13 @@ def parse_sphinx_sections(content):
         h1_title = h1_section.text().replace(u'¶', '').strip()
         h1_id = div.attr('id')
         h1_content = ""
-        next_p = next(body('h1'))
+        next_p = next(body('h1'))  # pylint: disable=stop-iteration-return
         while next_p:
             if next_p[0].tag == 'div' and 'class' in next_p[0].attrib:
                 if 'section' in next_p[0].attrib['class']:
                     break
             h1_content += "\n%s\n" % next_p.html()
-            next_p = next(next_p)
+            next_p = next(next_p)  # pylint: disable=stop-iteration-return
         if h1_content:
             yield {
                 'id': h1_id,
@@ -212,12 +212,11 @@ def parse_sphinx_sections(content):
             'title': title,
             'content': content,
         }
-        log.debug("(Search Index) Section [%s:%s]: %s",
-                  section_id, title, content)
 
 
 def parse_mkdocs_sections(content):
-    """Generate a list of sections from mkdocs-style html.
+    """
+    Generate a list of sections from mkdocs-style html.
 
     May raise a ValueError
     """
@@ -229,14 +228,14 @@ def parse_mkdocs_sections(content):
         h1_id = h1.attr('id')
         h1_title = h1.text().strip()
         h1_content = ""
-        next_p = next(body('h1'))
+        next_p = next(body('h1'))  # pylint: disable=stop-iteration-return
         while next_p:
             if next_p[0].tag == 'h2':
                 break
             h1_html = next_p.html()
             if h1_html:
                 h1_content += "\n%s\n" % h1_html
-            next_p = next(next_p)
+            next_p = next(next_p)  # pylint: disable=stop-iteration-return
         if h1_content:
             yield {
                 'id': h1_id,
@@ -251,26 +250,24 @@ def parse_mkdocs_sections(content):
             h2_title = h2.text().strip()
             section_id = h2.attr('id')
             h2_content = ""
-            next_p = next(body('h2'))
+            next_p = next(body('h2'))  # pylint: disable=stop-iteration-return
             while next_p:
                 if next_p[0].tag == 'h2':
                     break
                 h2_html = next_p.html()
                 if h2_html:
                     h2_content += "\n%s\n" % h2_html
-                next_p = next(next_p)
+                next_p = next(next_p)  # pylint: disable=stop-iteration-return
             if h2_content:
                 yield {
                     'id': section_id,
                     'title': h2_title,
                     'content': h2_content,
                 }
-            log.debug("(Search Index) Section [%s:%s]: %s",
-                      section_id, h2_title, h2_content)
     # we're unsure which exceptions can be raised
     # pylint: disable=bare-except
     except:
-        log.error('Failed indexing', exc_info=True)
+        log.exception('Failed indexing')
 
 
 def parse_sections(documentation_type, content):

@@ -1,7 +1,8 @@
-"""Classes to copy files between build and web servers
+"""
+Classes to copy files between build and web servers.
 
-"Syncers" copy files from the local machine, while "Pullers" copy files to
-the local machine.
+"Syncers" copy files from the local machine, while "Pullers" copy files to the
+local machine.
 """
 
 from __future__ import absolute_import
@@ -103,7 +104,8 @@ class DoubleRemotePuller(object):
                     log.info(mkdir_cmd)
             # Add a slash when copying directories
             sync_cmd = (
-                "ssh {user}@{server} 'rsync -av --delete {user}@{host}:{path} {target}'"
+                "ssh {user}@{server} 'rsync -av "
+                "--delete --exclude projects {user}@{host}:{path} {target}'"
                 .format(
                     host=host,
                     path=path,
@@ -140,7 +142,7 @@ class RemotePuller(object):
         )
         ret = os.system(sync_cmd)
         if ret != 0:
-            log.info("COPY ERROR to app servers.")
+            log.error("COPY ERROR to app servers. Command: [{}] Return: [{}]".format(sync_cmd, ret))
 
 
 class Syncer(SettingsOverrideObject):
